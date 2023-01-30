@@ -57,7 +57,7 @@ class JSONComparator:
         """
         self.diff_log.log.clear()
         self.__edit_target_prop_path_root("DATA", "LEFT")
-        self.__compare(with_actual=False)
+        self.__compare(with_right=False)
         self.__edit_target_prop_path_root("LEFT", "DATA")
 
     def full_compare(self) -> None:
@@ -69,7 +69,7 @@ class JSONComparator:
         self.__edit_target_prop_path_root("DATA", "RIGHT")
         self.__compare()
         self.__edit_target_prop_path_root("RIGHT", "LEFT")
-        self.__compare(with_actual=False)
+        self.__compare(with_right=False)
         self.__edit_target_prop_path_root("LEFT", "DATA")
 
     def save_diff_logs(self, path: str = "") -> None:
@@ -86,18 +86,17 @@ class JSONComparator:
     def __edit_target_prop_path_root(self, from_: str, to: str) -> None:
         self.target_property = self.target_property.replace(from_, to)
 
-    def __compare(self, with_actual: bool = True) -> None:
+    def __compare(self, with_right: bool = True) -> None:
         data1, data2, root_log = self.left_data, self.right_data, "RIGHT"
-        if not with_actual:
+        if not with_right:
             data1, data2, root_log = data2, data1, "LEFT"
 
-        match self.left_data:
-            case dict():
-                self._compare_dicts(root_log, data1, data2)
-            case list():
-                self._compare_lists(root_log, data1, data2)
-            case _:
-                raise
+        if isinstance(self.left_data, list) and isinstance(self.right_data, list):
+            self._compare_lists(root_log, data1, data2)
+        elif isinstance(self.left_data, dict) and isinstance(self.right_data, dict):
+            self._compare_dicts(root_log, data1, data2)
+        else:
+            self.diff_log.incorrect_type(self.left_data, self.right_data)
 
     def _compare_dicts(
         self, item_path: str, exp_data: dict[str, Any], act_data: dict[str, Any]
@@ -126,7 +125,7 @@ class JSONComparator:
     def _compare_lists(
         self, item_path: str, exp_data: list[Any], act_data: list[Any]
     ) -> None:
-        if hasattr(self, "target_key_path"):
+        if self.target_property:
             self.__compare_with_nested_obj_prop_respect(item_path, exp_data, act_data)
         else:
             self.__compare_with_items_order_respect(item_path, exp_data, act_data)

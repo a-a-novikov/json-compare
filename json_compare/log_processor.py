@@ -5,6 +5,16 @@ class LogProcessor:
     def __init__(self) -> None:
         self.log: list[str] = list()
         self.curr_path: str = str()
+        self.missing_prop: list[str, int] = ["missing_obj_property", 0]
+        self.incor_type: list[str, int] = ["incorrect_type", 0]
+        self.lack_of_items: list[str, int] = ["lack_of_array_items", 0]
+        self.exceed_items: list[str, int] = ["exceeding_array_items", 0]
+        self.unequal_val: list[str, int] = ["unequal_value", 0]
+        self.miss_arr_item: list[str, int] = ["missing_array_itme", 0]
+        self.diffs_counters = [
+            self.missing_prop, self.incor_type, self.lack_of_items,
+            self.exceed_items, self.unequal_val, self.miss_arr_item,
+        ]
 
     def setup_path(self, prev_path: str, key: str) -> None:
         if prev_path:
@@ -15,6 +25,7 @@ class LogProcessor:
     def missing_property(self) -> None:
         msg = self.curr_path + "\nproperty is missing"
         self.log.append(msg)
+        self.missing_prop[1] += 1
 
     def incorrect_type(
             self,
@@ -28,6 +39,7 @@ class LogProcessor:
             f"got {act_obj_type} instead"
         )
         self.log.append(msg)
+        self.incor_type[1] += 1
 
     def lack_of_array_items(self, exp_len: int, act_len: int) -> None:
         msg = (
@@ -35,6 +47,7 @@ class LogProcessor:
             + f"\nlack of items in array: expected {exp_len} items, got only {act_len}"
         )
         self.log.append(msg)
+        self.lack_of_items[1] += 1
 
     def exceeding_array_items(self, exp_len: int, act_len: int) -> None:
         msg = (
@@ -42,6 +55,7 @@ class LogProcessor:
             + f"\ntoo much items in array: expected {exp_len} items, got {act_len}"
         )
         self.log.append(msg)
+        self.exceed_items[1] += 1
 
     def unequal_values(
         self,
@@ -59,6 +73,7 @@ class LogProcessor:
             + f"\nunequal values: expected {exp_value}, got {act_value} instead"
         )
         self.log.append(msg)
+        self.unequal_val[1] += 1
 
     def missing_array_item(
         self,
@@ -75,6 +90,17 @@ class LogProcessor:
             exp_value = f'<object> with "{key_prop}"={exp_value}'
         msg = self.curr_path + f"\nmissing array item: expected {exp_value}"
         self.log.append(msg)
+        self.miss_arr_item[1] += 1
+
+    def setup_summary(self) -> None:
+        summary = (
+            f"---------------------"
+            f"\nTOTAL: {len(self.log)} differences\n"
+        )
+        for counter in self.diffs_counters:
+            if counter[1]:
+                summary += f"-{counter[0]}: " + f"{counter[1]}\n"
+        self.log.append(summary)
 
     @staticmethod
     def __convert_to_json_type(

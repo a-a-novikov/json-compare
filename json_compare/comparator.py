@@ -39,8 +39,10 @@ class JSONComparator:
             self.ignore = [ignore]
         with open(left_file_path, "r") as file:
             self.left_data = json.load(file)
+            self.left_f_name: str = file.name.removesuffix(".json").upper()
         with open(right_file_path, "r") as file:
             self.right_data = json.load(file)
+            self.right_f_name: str = file.name.removesuffix(".json").upper()
 
     def compare_with_right(self) -> None:
         """
@@ -48,9 +50,9 @@ class JSONComparator:
         :return: None;
         """
         self.diff_log.log.clear()
-        self.__edit_key_path_root("DATA", "RIGHT")
+        self.__edit_key_path_root("DATA", self.right_f_name)
         self.__compare()
-        self.__edit_key_path_root("RIGHT", "DATA")
+        self.__edit_key_path_root(self.right_f_name, "DATA")
 
     def compare_with_left(self) -> None:
         """
@@ -58,9 +60,9 @@ class JSONComparator:
         :return: None;
         """
         self.diff_log.log.clear()
-        self.__edit_key_path_root("DATA", "LEFT")
+        self.__edit_key_path_root("DATA", self.left_f_name)
         self.__compare(with_right=False)
-        self.__edit_key_path_root("LEFT", "DATA")
+        self.__edit_key_path_root(self.left_f_name, "DATA")
 
     def full_compare(self) -> None:
         """
@@ -68,11 +70,11 @@ class JSONComparator:
         :return: None;
         """
         self.diff_log.log.clear()
-        self.__edit_key_path_root("DATA", "RIGHT")
+        self.__edit_key_path_root("DATA", self.right_f_name)
         self.__compare()
-        self.__edit_key_path_root("RIGHT", "LEFT")
+        self.__edit_key_path_root(self.right_f_name, self.left_f_name)
         self.__compare(with_right=False)
-        self.__edit_key_path_root("LEFT", "DATA")
+        self.__edit_key_path_root(self.left_f_name, "DATA")
 
     def save_diff_logs(self, path: str = "") -> None:
         """
@@ -89,9 +91,9 @@ class JSONComparator:
         self.key = self.key.replace(from_, to)
 
     def __compare(self, with_right: bool = True) -> None:
-        data1, data2, root_log = self.left_data, self.right_data, "RIGHT"
+        data1, data2, root_log = self.left_data, self.right_data, self.right_f_name
         if not with_right:
-            data1, data2, root_log = data2, data1, "LEFT"
+            data1, data2, root_log = data2, data1, self.left_f_name
 
         if isinstance(self.left_data, list) and isinstance(self.right_data, list):
             self._compare_lists(root_log, data1, data2)
@@ -99,6 +101,8 @@ class JSONComparator:
             self._compare_dicts(root_log, data1, data2)
         else:
             self.diff_log.incorrect_type(self.left_data, self.right_data)
+
+        self.diff_log.setup_summary()
 
     def _compare_dicts(
         self, item_path: str, exp_data: dict[str, Any], act_data: dict[str, Any]
@@ -186,7 +190,6 @@ class JSONComparator:
                     self._compare_lists(self.diff_log.curr_path, val, act_data[idx])
                 else:
                     self.diff_log.incorrect_type(list(), act_data[idx])
-
                 continue
             if val != act_data[idx]:
                 self.diff_log.unequal_values(val, act_data[idx])
@@ -210,8 +213,8 @@ class JSONComparator:
     def __key_to_ignore(self) -> bool:
         curr_path_without_idx = (
             re.sub("\[[^()]*\]", "", self.diff_log.curr_path)
-            .replace("RIGHT", "DATA")
-            .replace("LEFT", "DATA")
+            .replace(self.right_f_name, "DATA")
+            .replace(self.left_f_name, "DATA")
         )
         return True if curr_path_without_idx in self.ignore else False
 

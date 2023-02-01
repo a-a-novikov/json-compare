@@ -15,26 +15,28 @@ class JSONComparator:
         self,
         left_file_path: str,
         right_file_path: str,
-        target_property: str | None = None,
-        properties_to_ignore: list[str] | None = None,
+        key: str | None = None,
+        ignore: str | list[str] | None = None,
     ):
         """
         :param left_file_path: path to file in .JSON format;
         :param right_file_path: path to file in .JSON format;
-        :param target_property: key for JSON-object's property's name to be a key in comparison
+        :param key: key for JSON-object's property's name to be a key in comparison
         of similar objects nested in an array. For example, you have:
         {"cats": [{"id": 4, "name": "Nyan"}, {"id": 2, "name": "Marx"}]}. If you want to set
-        cat's "id" as a target_key, use "DATA.cats.<array>.id". DATA points out to the root
-        of your JSON and <array> indicates object with target_key is nested in an array;
-        :param properties_to_ignore: a list of objects' properties whose mismatch should be
-        ignored in the process of comparing. Checkout target_key's paragraph to see examples
+        cat's "id" as a key, use "DATA.cats.<array>.id". DATA points out to the root
+        of your JSON and <array> indicates object with key is nested in an array;
+        :param ignore: a str or a list of objects' properties whose mismatch should be
+        ignored in the process of comparing. Checkout key's paragraph to see examples
         of correct setting the param's items;
         """
         self.diff_log: LogProcessor = LogProcessor()
-        self.target_property: str = target_property if target_property else ""
-        self.properties_to_ignore: list[str] = (
-            properties_to_ignore if properties_to_ignore else list()
-        )
+        self.key: str = key if key else ""
+        self.ignore: list[str] = list()
+        if isinstance(ignore, list):
+            self.ignore = ignore
+        elif isinstance(ignore, str):
+            self.ignore = [ignore]
         with open(left_file_path, "r") as file:
             self.left_data = json.load(file)
         with open(right_file_path, "r") as file:
@@ -46,9 +48,9 @@ class JSONComparator:
         :return: None;
         """
         self.diff_log.log.clear()
-        self.__edit_target_prop_path_root("DATA", "RIGHT")
+        self.__edit_key_path_root("DATA", "RIGHT")
         self.__compare()
-        self.__edit_target_prop_path_root("RIGHT", "DATA")
+        self.__edit_key_path_root("RIGHT", "DATA")
 
     def compare_with_left(self) -> None:
         """
@@ -56,9 +58,9 @@ class JSONComparator:
         :return: None;
         """
         self.diff_log.log.clear()
-        self.__edit_target_prop_path_root("DATA", "LEFT")
+        self.__edit_key_path_root("DATA", "LEFT")
         self.__compare(with_right=False)
-        self.__edit_target_prop_path_root("LEFT", "DATA")
+        self.__edit_key_path_root("LEFT", "DATA")
 
     def full_compare(self) -> None:
         """
@@ -66,11 +68,11 @@ class JSONComparator:
         :return: None;
         """
         self.diff_log.log.clear()
-        self.__edit_target_prop_path_root("DATA", "RIGHT")
+        self.__edit_key_path_root("DATA", "RIGHT")
         self.__compare()
-        self.__edit_target_prop_path_root("RIGHT", "LEFT")
+        self.__edit_key_path_root("RIGHT", "LEFT")
         self.__compare(with_right=False)
-        self.__edit_target_prop_path_root("LEFT", "DATA")
+        self.__edit_key_path_root("LEFT", "DATA")
 
     def save_diff_logs(self, path: str = "") -> None:
         """
@@ -83,8 +85,8 @@ class JSONComparator:
         with open(f"{path}{log_file_name}", "w") as f:
             f.write("\n".join(self.diff_log.log))
 
-    def __edit_target_prop_path_root(self, from_: str, to: str) -> None:
-        self.target_property = self.target_property.replace(from_, to)
+    def __edit_key_path_root(self, from_: str, to: str) -> None:
+        self.key = self.key.replace(from_, to)
 
     def __compare(self, with_right: bool = True) -> None:
         data1, data2, root_log = self.left_data, self.right_data, "RIGHT"
@@ -125,7 +127,7 @@ class JSONComparator:
     def _compare_lists(
         self, item_path: str, exp_data: list[Any], act_data: list[Any]
     ) -> None:
-        if self.target_property:
+        if self.key:
             self.__compare_with_nested_obj_prop_respect(item_path, exp_data, act_data)
         else:
             self.__compare_with_items_order_respect(item_path, exp_data, act_data)
@@ -166,13 +168,13 @@ class JSONComparator:
         for idx, val in enumerate(exp_data):
             self.diff_log.setup_path(item_path, f"<array[{idx}]>")
             if type(val) is dict:
-                target_prop, target_prop_val = self.__get_target_prop_value(val)
+                key_prop, key_prop_val = self.__get_key_prop_value(val)
                 act_data_similar_idx = self.__get_idx_of_similar_row(
-                    target_prop, target_prop_val, act_data
+                    key_prop, key_prop_val, act_data
                 )
                 if act_data_similar_idx is None:
                     self.diff_log.missing_array_item(
-                        exp_value=target_prop_val, target_prop=target_prop
+                        exp_value=key_prop_val, key_prop=key_prop
                     )
                     continue
                 self._compare_dicts(
@@ -196,14 +198,14 @@ class JSONComparator:
         elif exp_len < act_len:
             self.diff_log.exceeding_array_items(exp_len, act_len)
 
-    def __get_target_prop_value(
+    def __get_key_prop_value(
         self, object_: dict[str, Any]
     ) -> tuple[str, int | float | str | bool | dict[str, Any] | list[Any] | None]:
-        target_key = self.target_property.removeprefix(
+        key = self.key.removeprefix(
             re.sub("\[[^()]*\]", "", self.diff_log.curr_path)
         ).replace(".", "")
-        exp_key_val = object_[target_key]
-        return target_key, exp_key_val
+        exp_key_val = object_[key]
+        return key, exp_key_val
 
     def __key_to_ignore(self) -> bool:
         curr_path_without_idx = (
@@ -211,7 +213,7 @@ class JSONComparator:
             .replace("RIGHT", "DATA")
             .replace("LEFT", "DATA")
         )
-        return True if curr_path_without_idx in self.properties_to_ignore else False
+        return True if curr_path_without_idx in self.ignore else False
 
     @staticmethod
     def __get_idx_of_similar_row(

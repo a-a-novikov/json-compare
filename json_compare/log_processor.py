@@ -63,7 +63,7 @@ class LogProcessor:
     def missing_array_item(
         self,
         exp_value: int | float | str | bool | dict[str, Any] | list[Any] | None,
-        target_prop: str | None = None,
+        key_prop: str | None = None,
     ) -> None:
         if isinstance(exp_value, str):
             exp_value = f'"{exp_value}"'
@@ -71,8 +71,8 @@ class LogProcessor:
             exp_value = f"<object>"
         if isinstance(exp_value, list):
             exp_value = f"<array>"
-        if target_prop:
-            exp_value = f'<object> with "{target_prop}"={exp_value}'
+        if key_prop:
+            exp_value = f'<object> with "{key_prop}"={exp_value}'
         msg = self.curr_path + f"\nmissing array item: expected {exp_value}"
         self.log.append(msg)
 

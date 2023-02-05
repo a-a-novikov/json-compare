@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "json-compare"
+name = "json-files-compare"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Simple but powerfull JSON-files comparator"
+authors = ["Alexey Novikov <lexutka@gmail.com>"]
 readme = "README.md"
-packages = [{include = "json_compare"}]
+packages = [{include = "json-files-compare"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"

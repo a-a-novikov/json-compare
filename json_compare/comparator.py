@@ -64,7 +64,6 @@ class JSONComparator:
         self.__edit_key_path_root(self.right_f_name, "DATA")
         self.diff_log._setup_summary()
 
-
     def compare_with_left(self) -> None:
         """
         Looks for how the left JSON-file differs from the right one.
@@ -175,7 +174,7 @@ class JSONComparator:
                     target_keys_with_values, act_data
                 )
                 if act_data_similar_idx is None:
-                    self.diff_log.missing_array_item(val, target_keys_with_values)
+                    self.diff_log.missing_array_item(target_keys_with_values)
                     continue
                 self.__compare_dicts(self.diff_log.curr_path, val, act_data[act_data_similar_idx])
                 continue
@@ -205,7 +204,7 @@ class JSONComparator:
         elif isinstance(actual_val, str) and self.ignore_types:
             self.__try_json_decode_and_compare(expected_val, actual_val)
 
-    def __check_array_lengths(self, item_path: str, exp_len: int, act_len: int) -> None:
+    def __check_array_lengths(self, exp_len: int, act_len: int) -> None:
         if exp_len > act_len:
             self.diff_log._lack_of_array_items(exp_len, act_len)
         elif exp_len < act_len:

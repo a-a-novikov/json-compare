@@ -91,15 +91,17 @@ class LogProcessor:
 
     def missing_array_item(
         self,
-        exp_value: int | float | str | bool | dict[str, Any] | list[Any] | None,
-        key_props_with_values: dict[str, int | float | str | bool | dict[str, Any] | list[Any] | None],
+        key_props_with_values: (
+                dict[str, int | float | str | bool | dict[str, Any] | list[Any] | None]
+        ),
     ) -> None:
         expected_props = list()
         for key, val in key_props_with_values.items():
             if isinstance(val, str):
                 val = f'"{val}"'
             expected_props.append(f'{key}: {val}')
-        msg = self.curr_path + f"\nmissing array item: expected <object> with {', '.join(expected_props)}"
+        expected_props_str = ', '.join(expected_props)
+        msg = self.curr_path + f"\nmissing array item: expected <object> with {expected_props_str}"
         self.log.append(msg)
         self.diffs_counter["missing_array_item"] += 1
 

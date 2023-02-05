@@ -2,7 +2,7 @@
 Json-compare is a simple package that allows you to easily and fastly compare two .json files. Support key and multi-key comparison.
 You can also ignore certain fields' values or perform comparison insensitive to data types.
 
-[![made-with-python](https://img.shields.io/badge/python-3.10%2B-brightgreen)](https://www.python.org/)
+[![made-with-python](https://img.shields.io/badge/python-3.11%2B-brightgreen)](https://www.python.org/)
 
 Usage
 ---

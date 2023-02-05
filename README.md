@@ -2,7 +2,7 @@
 Json-compare is a simple package that allows you to easily and fastly compare two .json files. Support key and multi-key comparison.
 You can also ignore certain fields' values or perform comparison insensitive to data types.
 
-[![made-with-python](https://img.shields.io/badge/python-3.11%2B-brightgreen)](https://www.python.org/)
+[![made-with-python](https://img.shields.io/badge/python-3.10%2B-brightgreen)](https://www.python.org/)
 
 Usage
 ---
@@ -27,10 +27,13 @@ diffs = comparator.diff_log.log
 print("\n".join(diffs))
 
 # or print only summary. Here's an example:
----------------------
-TOTAL: 4 differences
--missing_obj_property: 3
--unequal_value: 4
+print(comparator.diff_log.get_summary())
+
+# OUTPUT example:
+# ---------------------
+# TOTAL: 4 differences
+# -missing_obj_property: 3
+# -unequal_value: 4
 ```
 Set key property to perform more accurate comparisons of objects in arrays:
 

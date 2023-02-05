@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "json-files-compare"
-version = "0.1.0"
+version = "1.0.0.1"
 description = "Simple but powerfull JSON-files comparator"
 authors = ["Alexey Novikov <lexutka@gmail.com>"]
 readme = "README.md"

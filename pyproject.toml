@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Simple but powerfull JSON-files comparator"
 authors = ["Alexey Novikov <lexutka@gmail.com>"]
 readme = "README.md"
-packages = [{include = "json-files-compare"}]
+packages = [{include = "json_compare"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"

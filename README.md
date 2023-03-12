@@ -4,6 +4,12 @@ You can also ignore certain fields' values or perform comparison insensitive to 
 
 [![made-with-python](https://img.shields.io/badge/python-3.10%2B-brightgreen)](https://www.python.org/)
 
+Installation
+---
+```text
+pip install json-files-compare
+```
+
 Usage
 ---
 Compare files just as they are:
